@@ -57,6 +57,7 @@ MACRO plot_line ;\1 = position, \2 = end, \3 = second, \4 = delta one, \5 = delt
 	jr nz, .loopPosition\@
 
 	call PlotPixel
+	ret
 ENDM
 
 MACRO plot_straight ;\1 = position, \2 = end, \3 = increment one
@@ -70,6 +71,7 @@ MACRO plot_straight ;\1 = position, \2 = end, \3 = increment one
 	jr nz, .loopPosition\@
 
 	call PlotPixel
+	ret
 ENDM
 
 MACRO wait_stat
@@ -97,19 +99,15 @@ PlotLine::
 	jr nc, .dyIsLonger
 
 	plot_line b, d, c, h, l, e, wIncX, wIncY
-	ret
 
 .isVertical
 	plot_straight c, e, wIncY
-	ret
 
 .isHorizontal
 	plot_straight b, d, wIncX
-	ret
 
 .dyIsLonger
 	plot_line c, e, b, l, h, d, wIncY, wIncX
-	ret
 
 PlotPixel::
 	push hl
@@ -140,11 +138,13 @@ PlotPixel::
 	rra
 	ld h, a
 
+	di
 	wait_stat
 	ld a, [wLineMask]
 	or a, [hl]
 	ld [hli], a
 	ld [hl], a
+	ei
 
 	pop hl
 	ret
