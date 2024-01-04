@@ -2,6 +2,20 @@
 
 INCLUDE "hardware.inc"
 
+MACRO set_palette
+	ld a, \1CPSF_AUTOINC
+	ldh [r\1CPS], a
+
+	ld b, 0
+	ld d, 64
+	ld hl, r\1CPD
+
+.loopCpd\@
+	ld [hl], b
+	dec d
+	jr nz, .loopCpd\@
+ENDM
+
 SECTION "RST Vector 0", ROM0[$0]
 
 CopyMemory::
@@ -34,18 +48,20 @@ SECTION "Entry Point", ROM0[$100]
 	di
 	jp Startup
 
-SECTION "Header", ROM0[$104]
+SECTION "Header - Part 1", ROM0[$104]
 
 	NINTENDO_LOGO
+
+SECTION "Header - Part 2", ROM0[$143]
+
+	db CART_COMPATIBLE_GBC
 
 SECTION "Startup Routine", ROM0[$150]
 
 Startup:
-
-.waitLy
 	ldh a, [rLY]
 	cp a, 144
-	jr nz, .waitLy
+	jr nz, Startup
 
 	xor a, a
 	ldh [rLCDC], a
@@ -55,14 +71,34 @@ Startup:
 	ld hl, _VRAM
 	rst 16
 
+	ld a, 1
+	ldh [rVBK], a
+
+	ld b, 8
+	ld de, _SCRN1 - _SCRN0
+	ld hl, _SCRN0
+	rst 16
+
+	xor a, a
+	ldh [rVBK], a
+
+	call PrepLineDrawing
+
 	ld de, wShadowOam.end - wShadowOam
 	ld hl, wShadowOam
 	rst 16
 
-	ld a, $1B
-	ldh [rBGP], a
-	ldh [rOBP0], a
-	ldh [rOBP1], a
+	set_palette B
+	set_palette O
+
+	ld a, BCPSF_AUTOINC + 6
+	ldh [rBCPS], a
+
+	ld bc, $FF7F
+	ld hl, rBCPD
+
+	ld [hl], b
+	ld [hl], c
 
 	ld bc, OamDmaSource
 	ld de, OamDmaSource.end - OamDmaSource
@@ -78,55 +114,11 @@ Startup:
 	ld a, LCDCF_ON | LCDCF_BLK01 | LCDCF_BGON
 	ldh [rLCDC], a
 
-	call PrepScreen
-
-	ld b, 72
-	ld c, 35
-	ld d, 124
-	ld e, 20
-	call PlotLine
-
-	ld b, 50
-	ld c, 26
-	ld d, 91
-	ld e, 77
-	call PlotLine
-
-	ld b, 39
-	ld c, 73
-	ld d, 116
-	ld e, 63
-	call PlotLine
-
-	ld b, 102
-	ld c, 76
-	ld d, 25
-	ld e, 43
-	call PlotLine
-
-	ld b, 72
-	ld c, 86
-	ld d, 113
-	ld e, 32
-	call PlotLine
-
-	ld b, 73
-	ld c, 22
-	ld d, 41
-	ld e, 79
-	call PlotLine
-
-	ld b, 21
-	ld c, 50
-	ld d, 126
-	ld e, 50
-	call PlotLine
-
-	ld b, 76
-	ld c, 18
-	ld d, 76
-	ld e, 30
-	call PlotLine
+	ld b, 0
+	ld c, 24
+	ld d, 159
+	ld e, 119
+	call DrawLine
 
 MainLoop::
 	halt
