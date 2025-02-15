@@ -128,22 +128,21 @@ CopyTilemap:
 	ldh [rLCDC], a
 	
 
-	ld b, 0
+	ld b, 1
 	ld c, 24
-	ld d, 159
-	ld e, 119
-	call DrawLine
-
-	ld b, 98
-	ld c, 54
-	ld d, 44
-	ld e, 73
+	ld d, 140
+	ld e, 24
 	call DrawLine
 	
-
-	ld b, 12
+	ld b, 158
 	ld c, 24
-	ld d, 44
+	ld d, 158
+	ld e, 119
+	call DrawLine
+	
+	ld b, 1
+	ld c, 119
+	ld d, 158
 	ld e, 24
 	call DrawLine
 
